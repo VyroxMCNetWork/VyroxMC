@@ -29,6 +29,15 @@ const client = new Client({
 
 client.commands = new Collection();
 
+// OTHER SERVER TICKET SETTINGS
+const OTHER_TICKET_SERVER_ID = "1570515782927126789";
+
+const OTHER_SERVER_STAFF_ROLES = [
+    "1570727962863607908", // Senior Mod
+    "1570728049379647629", // Mod
+    "1570728360064057484"  // Assistance
+];
+
 // VYROXMC LEVEL SYSTEM SETTINGS
 const LEVEL_CHANNEL_ID = "1564678166767739012";
 const LEVELS_FILE = path.join(__dirname, "levels.json");
@@ -189,12 +198,21 @@ client.on("interactionCreate", async interaction => {
                 );
             }
 
-            const staffRoles = [
-                config.ROLES.SENIOR_ADMIN,
-                config.ROLES.ADMIN,
-                config.ROLES.MOD,
-                config.ROLES.HELPER
-            ].filter(Boolean);
+            // SERVER-SPECIFIC STAFF ROLES
+            let staffRoles;
+
+            if (guild.id === OTHER_TICKET_SERVER_ID) {
+                // Other server: only these three staff roles
+                staffRoles = OTHER_SERVER_STAFF_ROLES;
+            } else {
+                // Main VyroxMC server: keep original staff roles
+                staffRoles = [
+                    config.ROLES.SENIOR_ADMIN,
+                    config.ROLES.ADMIN,
+                    config.ROLES.MOD,
+                    config.ROLES.HELPER
+                ].filter(Boolean);
+            }
 
             const permissionOverwrites = [
                 {
