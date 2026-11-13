@@ -29,7 +29,10 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// OTHER SERVER TICKET SETTINGS
+// ==========================================
+// SUPPORT TICKET SETTINGS
+// ==========================================
+
 const OTHER_TICKET_SERVER_ID = "1570515782927126789";
 
 const OTHER_SERVER_STAFF_ROLES = [
@@ -38,23 +41,29 @@ const OTHER_SERVER_STAFF_ROLES = [
     "1570728360064057484"
 ];
 
-// VYROXMC LEVEL SYSTEM
+// ==========================================
+// LEVEL SYSTEM SETTINGS
+// ==========================================
+
 const LEVEL_CHANNEL_ID = "1564678166767739012";
 const LEVELS_FILE = path.join(__dirname, "levels.json");
 
+// ==========================================
 // STAFF APPLICATION SETTINGS
+// ==========================================
+
 const APPLICATION_SERVER_ID = "1570765318513754173";
 const APPLICATION_REVIEW_CHANNEL_ID = "1570775196779020318";
 const ACCEPTED_MODERATOR_ROLE_ID = "1570769043366088875";
 
 const APPLICATION_REVIEWER_ROLES = [
-    "1570768938629988402", // Senior Admin
-    "1570765719606657094", // Founder & Owner
-    "1570765803496939550", // Owner
-    "1570774256814399518"  // Co-Owner
+    "1570768938629988402",
+    "1570765719606657094",
+    "1570765803496939550",
+    "1570774256814399518"
 ];
 
-// Temporary application drafts stored while the bot is running
+// Temporary drafts are stored while the bot is running.
 const applicationDrafts = new Map();
 
 const APPLICATION_QUESTIONS = [
@@ -85,7 +94,10 @@ const APPLICATION_QUESTIONS = [
     }
 ];
 
+// ==========================================
 // LEVEL FUNCTIONS
+// ==========================================
+
 function loadLevels() {
     try {
         return fs.existsSync(LEVELS_FILE)
@@ -106,7 +118,10 @@ function getLevel(data) {
         (data.bonusLevels || 0);
 }
 
+// ==========================================
 // APPLICATION PERMISSION FUNCTIONS
+// ==========================================
+
 function isApplicationReviewer(interaction) {
     if (
         interaction.memberPermissions?.has(
@@ -169,7 +184,10 @@ function makeApplicationReviewEmbed(user, answers) {
         .setTimestamp();
 }
 
-// LOAD COMMANDS
+// ==========================================
+// LOAD SLASH COMMANDS
+// ==========================================
+
 const commandsPath = path.join(__dirname, "commands");
 
 if (fs.existsSync(commandsPath)) {
@@ -193,7 +211,10 @@ if (fs.existsSync(commandsPath)) {
     }
 }
 
+// ==========================================
 // BOT READY
+// ==========================================
+
 client.once("ready", () => {
     console.log("=================================");
     console.log("       VYROXMC NETWORK");
@@ -214,11 +235,14 @@ client.once("ready", () => {
     });
 });
 
+// ==========================================
 // COUNT MESSAGES AND GIVE LEVELS
+// ==========================================
+
 client.on("messageCreate", async message => {
     if (!message.guild || message.author.bot) return;
 
-    // Application answers do not count toward chat levels
+    // Application answers do not count toward levels.
     if (message.channel.topic?.startsWith("vyroxmc-application:")) {
         return;
     }
@@ -272,7 +296,10 @@ client.on("messageCreate", async message => {
     }
 });
 
+// ==========================================
 // TICKET CLOSE BUTTON
+// ==========================================
+
 function createCloseRow() {
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -283,12 +310,16 @@ function createCloseRow() {
     );
 }
 
+// ==========================================
 // INTERACTION HANDLER
+// ==========================================
+
 client.on("interactionCreate", async interaction => {
 
     // ==========================================
     // CREATE SUPPORT TICKET
     // ==========================================
+
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_create_ticket"
@@ -419,6 +450,7 @@ client.on("interactionCreate", async interaction => {
             );
 
             // ASK FOR IGN
+
             const ignEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setTitle("👤 Step 1 — Minecraft Username")
@@ -458,6 +490,7 @@ client.on("interactionCreate", async interaction => {
             const ign = ignMessages.first().content.trim().slice(0, 100);
 
             // ASK FOR ISSUE
+
             const issueEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setTitle("📝 Step 2 — Describe Your Issue")
@@ -498,6 +531,7 @@ client.on("interactionCreate", async interaction => {
             const issue = issueMessages.first().content.trim().slice(0, 1000);
 
             // FINAL TICKET SUMMARY
+
             const finalEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setAuthor({
@@ -557,6 +591,7 @@ client.on("interactionCreate", async interaction => {
     // ==========================================
     // CLOSE SUPPORT TICKET
     // ==========================================
+
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_close_ticket"
@@ -607,6 +642,7 @@ client.on("interactionCreate", async interaction => {
     // ==========================================
     // APPLY FOR VYROXMC STAFF
     // ==========================================
+
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_staff_apply"
@@ -721,7 +757,7 @@ client.on("interactionCreate", async interaction => {
                     .setDescription(
                         `**🇬🇧 English:**\n${question.question}\n\n` +
                         `**🇸🇦 العربية:**\n${question.arabic}\n\n` +
-                        `━━━━━━━━━━━━━━━━━━━━\n` +
+                        "━━━━━━━━━━━━━━━━━━━━\n" +
                         `**Question ${i + 1} of 5**\n` +
                         "Please type your answer below."
                     );
@@ -757,7 +793,10 @@ client.on("interactionCreate", async interaction => {
                     continue;
                 }
 
-                if (i === 3 && !/english|إنجليزي|انجليزي|الإنجليزية|الانجليزية/i.test(answer)) {
+                if (
+                    i === 3 &&
+                    !/english|إنجليزي|انجليزي|الإنجليزية|الانجليزية/i.test(answer)
+                ) {
                     await applicationChannel.send(
                         "❌ English is mandatory. Please answer again and include English in your languages.\n" +
                         "❌ اللغة الإنجليزية إلزامية. يرجى إعادة الإجابة وذكر اللغة الإنجليزية."
@@ -826,6 +865,7 @@ client.on("interactionCreate", async interaction => {
     // ==========================================
     // SUBMIT STAFF APPLICATION
     // ==========================================
+
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_staff_submit"
@@ -860,7 +900,7 @@ client.on("interactionCreate", async interaction => {
 
         if (!draft || draft.applicantId !== user.id) {
             return interaction.reply({
-                content: "❌ Application answers could not be found. Please contact staff.",
+                content: "❌ Application answers could not be found. Please start again.",
                 ephemeral: true
             });
         }
@@ -881,7 +921,7 @@ client.on("interactionCreate", async interaction => {
 
             if (!reviewChannel || !reviewChannel.isTextBased()) {
                 return interaction.editReply(
-                    "❌ The application review channel could not be found. Please contact staff."
+                    "❌ The application review channel could not be found."
                 );
             }
 
@@ -910,35 +950,25 @@ client.on("interactionCreate", async interaction => {
             });
 
             draft.submitted = true;
-            applicationDrafts.set(channel.id, draft);
-
-            await channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor("#22C55E")
-                        .setTitle("📨 Application Submitted Successfully")
-                        .setDescription(
-                            "Your application has been sent to the VyroxMC Management Team.\n\n" +
-                            "Please wait while your application is reviewed.\n\n" +
-                            "You will be notified when a decision has been made."
-                        )
-                        .setFooter({
-                            text: "VyroxMC Network • Thank you for applying"
-                        })
-                        .setTimestamp()
-                ],
-                components: []
-            });
+            applicationDrafts.delete(channel.id);
 
             await interaction.editReply(
-                "✅ Your application has been submitted successfully!"
+                "✅ Your application has been submitted successfully! Your private application channel will now be deleted."
             );
+
+            setTimeout(async () => {
+                await channel.delete(
+                    "Staff application successfully submitted"
+                ).catch(error => {
+                    console.error("Application channel deletion error:", error);
+                });
+            }, 3000);
 
         } catch (error) {
             console.error("Staff application submission error:", error);
 
             await interaction.editReply(
-                "❌ Could not submit your application. Please try again or contact staff."
+                "❌ Could not submit your application. Please contact staff."
             ).catch(() => {});
         }
 
@@ -948,6 +978,7 @@ client.on("interactionCreate", async interaction => {
     // ==========================================
     // ACCEPT OR DECLINE STAFF APPLICATION
     // ==========================================
+
     if (
         interaction.isButton() &&
         (
@@ -964,12 +995,13 @@ client.on("interactionCreate", async interaction => {
 
         if (!isApplicationReviewer(interaction)) {
             return interaction.reply({
-                content: "❌ You are not authorized to review staff applications.",
+                content: "❌ You are not authorized to review applications.",
                 ephemeral: true
             });
         }
 
         const [action, applicantId] = interaction.customId.split(":");
+        const isAccept = action === "vyroxmc_application_accept";
 
         await interaction.deferReply({ ephemeral: true });
 
@@ -986,7 +1018,7 @@ client.on("interactionCreate", async interaction => {
                 );
             }
 
-            const isAccept = action === "vyroxmc_application_accept";
+            // GIVE MODERATOR ROLE WHEN ACCEPTED
 
             if (isAccept) {
                 const moderatorRole = await guild.roles
@@ -995,19 +1027,42 @@ client.on("interactionCreate", async interaction => {
 
                 if (!moderatorRole) {
                     return interaction.editReply(
-                        "❌ The Moderator role could not be found."
+                        "❌ Moderator role not found. Check the role ID."
+                    );
+                }
+
+                const botMember = await guild.members.fetchMe();
+
+                if (!botMember.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                    return interaction.editReply(
+                        "❌ The bot needs the Manage Roles permission."
+                    );
+                }
+
+                if (
+                    moderatorRole.position >=
+                    botMember.roles.highest.position
+                ) {
+                    return interaction.editReply(
+                        "❌ The bot's highest role must be ABOVE the Moderator role. Move the bot role higher in Server Settings → Roles."
                     );
                 }
 
                 await applicant.roles.add(
-                    moderatorRole,
+                    moderatorRole.id,
                     `Staff application accepted by ${interaction.user.tag}`
                 );
             }
 
-            const decisionEmbed = EmbedBuilder.from(
-                interaction.message.embeds[0]
-            )
+            // UPDATE REVIEW MESSAGE
+
+            const originalEmbed = interaction.message.embeds[0];
+
+            const decisionEmbed = originalEmbed
+                ? EmbedBuilder.from(originalEmbed)
+                : new EmbedBuilder().setTitle("VyroxMC Staff Application");
+
+            decisionEmbed
                 .setColor(isAccept ? "#22C55E" : "#EF4444")
                 .addFields({
                     name: "📌 Application Decision",
@@ -1020,7 +1075,11 @@ client.on("interactionCreate", async interaction => {
                 new ButtonBuilder()
                     .setCustomId("vyroxmc_application_decision_done")
                     .setLabel(isAccept ? "Accepted" : "Declined")
-                    .setStyle(isAccept ? ButtonStyle.Success : ButtonStyle.Danger)
+                    .setStyle(
+                        isAccept
+                            ? ButtonStyle.Success
+                            : ButtonStyle.Danger
+                    )
                     .setDisabled(true)
             );
 
@@ -1029,66 +1088,50 @@ client.on("interactionCreate", async interaction => {
                 components: [disabledButtons]
             });
 
-            const applicationChannel = guild.channels.cache.find(channel =>
-                channel.topic === `vyroxmc-application:${applicantId}`
-            );
+            // SEND DECISION DM
 
-            if (applicationChannel) {
-                const resultEmbed = new EmbedBuilder()
-                    .setColor(isAccept ? "#22C55E" : "#EF4444")
-                    .setTitle(
-                        isAccept
-                            ? "🎉 Your Application Has Been Accepted!"
-                            : "Application Update"
-                    )
-                    .setDescription(
-                        isAccept
-                            ? "Congratulations! Your application to join the **VyroxMC Staff Team** has been accepted.\n\n" +
-                              "You have been given the Moderator role. Welcome to the team!"
-                            : "Thank you for applying to the **VyroxMC Staff Team**.\n\n" +
-                              "Unfortunately, your application has not been accepted at this time.\n\n" +
-                              "We appreciate your interest in VyroxMC."
-                    )
-                    .setFooter({
-                        text: "VyroxMC Network • Staff Recruitment"
-                    })
-                    .setTimestamp();
+            let dmSent = true;
 
-                await applicationChannel.send({
-                    content: `${applicant}`,
-                    embeds: [resultEmbed]
-                }).catch(console.error);
+            try {
+                await applicant.send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(isAccept ? "#22C55E" : "#EF4444")
+                            .setTitle(
+                                isAccept
+                                    ? "🎉 Your VyroxMC Application Has Been Accepted!"
+                                    : "VyroxMC Staff Application Update"
+                            )
+                            .setDescription(
+                                isAccept
+                                    ? "Congratulations! Your application for the **VyroxMC Staff Team** has been accepted!\n\n" +
+                                      "You have automatically received the **Moderator** role.\n\n" +
+                                      "Welcome to the team! 🎉"
+                                    : "We're sorry, but your application for the **VyroxMC Staff Team** has been declined.\n\n" +
+                                      "Thank you for taking the time to apply. We appreciate your interest in VyroxMC. ❤️"
+                            )
+                            .setFooter({
+                                text: "VYROXMC NETWORK • PLAY VYROX. PLAY DIFFERENT."
+                            })
+                            .setTimestamp()
+                    ]
+                });
+            } catch (dmError) {
+                dmSent = false;
+                console.error("Applicant DM failed:", dmError);
             }
-
-            await applicant.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(isAccept ? "#22C55E" : "#EF4444")
-                        .setTitle(
-                            isAccept
-                                ? "🎉 VyroxMC Staff Application Accepted"
-                                : "VyroxMC Staff Application Update"
-                        )
-                        .setDescription(
-                            isAccept
-                                ? "Congratulations! Your application has been accepted. You have been given the Moderator role in the VyroxMC application server."
-                                : "Thank you for applying. Unfortunately, your application has not been accepted at this time."
-                        )
-                        .setTimestamp()
-                ]
-            }).catch(() => {});
 
             await interaction.editReply(
                 isAccept
-                    ? `✅ ${applicant.user.tag} has been accepted and given the Moderator role.`
-                    : `❌ ${applicant.user.tag}'s application has been declined.`
+                    ? `✅ **${applicant.user.tag}** has been accepted and given the Moderator role.\n${dmSent ? "📩 Acceptance DM sent." : "⚠️ Could not DM the applicant. Their DMs may be closed."}`
+                    : `❌ **${applicant.user.tag}** has been declined.\n${dmSent ? "📩 Decline DM sent." : "⚠️ Could not DM the applicant. Their DMs may be closed."}`
             );
 
         } catch (error) {
             console.error("Application decision error:", error);
 
             await interaction.editReply(
-                "❌ Something went wrong while processing this application."
+                `❌ Application processing failed: ${error.message || "Unknown error"}. Check Railway logs.`
             ).catch(() => {});
         }
 
@@ -1098,6 +1141,7 @@ client.on("interactionCreate", async interaction => {
     // ==========================================
     // SLASH COMMANDS
     // ==========================================
+
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
@@ -1131,6 +1175,10 @@ client.on("interactionCreate", async interaction => {
     }
 });
 
+// ==========================================
+// ERROR HANDLING
+// ==========================================
+
 client.on("error", error => {
     console.error("[DISCORD ERROR]", error);
 });
@@ -1138,6 +1186,10 @@ client.on("error", error => {
 process.on("unhandledRejection", error => {
     console.error("[UNHANDLED REJECTION]", error);
 });
+
+// ==========================================
+// BOT LOGIN
+// ==========================================
 
 if (!process.env.TOKEN) {
     console.error("Missing TOKEN in environment variables!");
