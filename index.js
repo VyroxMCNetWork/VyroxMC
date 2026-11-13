@@ -1105,7 +1105,7 @@ client.on("interactionCreate", async interaction => {
                             .setDescription(
                                 isAccept
                                     ? "Congratulations! Your application for the **VyroxMC Staff Team** has been accepted!\n\n" +
-                                      "You have automatically received the **Moderator** role.\n\n" +
+                                      "You have automatically received the **VyroxMC Mod Acceptance** role.\n\n" +
                                       "Welcome to the team! 🎉"
                                     : "We're sorry, but your application for the **VyroxMC Staff Team** has been declined.\n\n" +
                                       "Thank you for taking the time to apply. We appreciate your interest in VyroxMC. ❤️"
