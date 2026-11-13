@@ -62,7 +62,7 @@ function getLevel(data) {
         (data.bonusLevels || 0);
 }
 
-// Load commands
+// LOAD COMMANDS
 const commandsPath = path.join(__dirname, "commands");
 
 if (fs.existsSync(commandsPath)) {
@@ -86,6 +86,7 @@ if (fs.existsSync(commandsPath)) {
     }
 }
 
+// BOT READY
 client.once("ready", () => {
     console.log("=================================");
     console.log("       VYROXMC NETWORK");
@@ -106,7 +107,7 @@ client.once("ready", () => {
     });
 });
 
-// COUNT MESSAGES AND GIVE LEVELS
+// LEVEL SYSTEM
 client.on("messageCreate", async message => {
     if (!message.guild || message.author.bot) return;
 
@@ -159,7 +160,7 @@ client.on("messageCreate", async message => {
     }
 });
 
-// Ticket close button
+// TICKET CLOSE BUTTON
 function createCloseRow() {
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
@@ -170,24 +171,29 @@ function createCloseRow() {
     );
 }
 
-// Interaction handler
+// INTERACTION HANDLER
 client.on("interactionCreate", async interaction => {
 
-    // CREATE TICKET BUTTON
+    // CREATE TICKET
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_create_ticket"
     ) {
         await interaction.deferReply({ ephemeral: true });
 
+        let ticketChannel = null;
+
         try {
             const guild = interaction.guild;
             const user = interaction.user;
 
             if (!guild) {
-                return interaction.editReply("❌ This only works inside the server.");
+                return interaction.editReply(
+                    "❌ This only works inside a server."
+                );
             }
 
+            // CHECK FOR EXISTING TICKET
             const existingTicket = guild.channels.cache.find(channel =>
                 channel.topic === `vyroxmc-ticket:${user.id}`
             );
@@ -202,10 +208,8 @@ client.on("interactionCreate", async interaction => {
             let staffRoles;
 
             if (guild.id === OTHER_TICKET_SERVER_ID) {
-                // Other server: only these three staff roles
                 staffRoles = OTHER_SERVER_STAFF_ROLES;
             } else {
-                // Main VyroxMC server: keep original staff roles
                 staffRoles = [
                     config.ROLES.SENIOR_ADMIN,
                     config.ROLES.ADMIN,
@@ -214,18 +218,34 @@ client.on("interactionCreate", async interaction => {
                 ].filter(Boolean);
             }
 
+            // TICKET PERMISSIONS
             const permissionOverwrites = [
                 {
+                    // Everyone else cannot view
                     id: guild.id,
-                    deny: [PermissionFlagsBits.ViewChannel]
+                    deny: [
+                        PermissionFlagsBits.ViewChannel
+                    ]
                 },
                 {
+                    // Ticket creator
                     id: user.id,
                     allow: [
                         PermissionFlagsBits.ViewChannel,
                         PermissionFlagsBits.SendMessages,
                         PermissionFlagsBits.ReadMessageHistory,
                         PermissionFlagsBits.AttachFiles
+                    ]
+                },
+                {
+                    // BOT MUST BE ABLE TO ACCESS ITS OWN TICKET
+                    id: client.user.id,
+                    allow: [
+                        PermissionFlagsBits.ViewChannel,
+                        PermissionFlagsBits.SendMessages,
+                        PermissionFlagsBits.ReadMessageHistory,
+                        PermissionFlagsBits.AttachFiles,
+                        PermissionFlagsBits.EmbedLinks
                     ]
                 },
                 ...staffRoles.map(roleId => ({
@@ -239,12 +259,13 @@ client.on("interactionCreate", async interaction => {
                 }))
             ];
 
+            // CREATE TICKET CHANNEL
             const safeName = user.username
                 .toLowerCase()
                 .replace(/[^a-z0-9-]/g, "")
                 .slice(0, 20) || "user";
 
-            const ticketChannel = await guild.channels.create({
+            ticketChannel = await guild.channels.create({
                 name: `ticket-${safeName}`,
                 type: ChannelType.GuildText,
                 topic: `vyroxmc-ticket:${user.id}`,
@@ -256,6 +277,7 @@ client.on("interactionCreate", async interaction => {
                 extension: "png"
             });
 
+            // WELCOME MESSAGE
             const welcomeEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setAuthor({
@@ -273,7 +295,6 @@ client.on("interactionCreate", async interaction => {
                     "2. Describe the issue you're having.\n" +
                     "━━━━━━━━━━━━━━━━━━━━"
                 )
-                .setThumbnail(serverIcon)
                 .setFooter({
                     text: "VyroxMC Network • Support Department",
                     iconURL: serverIcon || undefined
@@ -289,7 +310,7 @@ client.on("interactionCreate", async interaction => {
                 `✅ Your private ticket has been created: ${ticketChannel}`
             );
 
-            // ASK FOR MINECRAFT IGN
+            // STEP 1: ASK FOR MINECRAFT IGN
             const ignEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setTitle("👤 Step 1 — Minecraft Username")
@@ -299,7 +320,9 @@ client.on("interactionCreate", async interaction => {
                     "⏳ Waiting for your response..."
                 );
 
-            await ticketChannel.send({ embeds: [ignEmbed] });
+            await ticketChannel.send({
+                embeds: [ignEmbed]
+            });
 
             const ignMessages = await ticketChannel.awaitMessages({
                 filter: message =>
@@ -323,12 +346,13 @@ client.on("interactionCreate", async interaction => {
                     ],
                     components: [createCloseRow()]
                 });
+
                 return;
             }
 
             const ign = ignMessages.first().content.trim().slice(0, 100);
 
-            // ASK FOR ISSUE
+            // STEP 2: ASK FOR ISSUE
             const issueEmbed = new EmbedBuilder()
                 .setColor("#8B5CF6")
                 .setTitle("📝 Step 2 — Describe Your Issue")
@@ -339,7 +363,9 @@ client.on("interactionCreate", async interaction => {
                     "⏳ Waiting for your response..."
                 );
 
-            await ticketChannel.send({ embeds: [issueEmbed] });
+            await ticketChannel.send({
+                embeds: [issueEmbed]
+            });
 
             const issueMessages = await ticketChannel.awaitMessages({
                 filter: message =>
@@ -363,6 +389,7 @@ client.on("interactionCreate", async interaction => {
                     ],
                     components: [createCloseRow()]
                 });
+
                 return;
             }
 
@@ -392,13 +419,12 @@ client.on("interactionCreate", async interaction => {
                     {
                         name: "📌 Ticket Status",
                         value: "🟢 Waiting for Staff"
+                    },
+                    {
+                        name: "💜 What's Next?",
+                        value: "Please wait for our staff team to come and help you!"
                     }
                 )
-                .addFields({
-                    name: "💜 What's Next?",
-                    value: "Please wait for our staff team to come and help you!"
-                })
-                .setThumbnail(serverIcon)
                 .setFooter({
                     text: "VyroxMC Network • Thank you for your patience",
                     iconURL: serverIcon || undefined
@@ -412,17 +438,30 @@ client.on("interactionCreate", async interaction => {
             });
 
         } catch (error) {
-            console.error("Ticket creation error:", error);
+            console.error("Ticket creation/setup error:", error);
 
-            await interaction.editReply(
-                "❌ Couldn't create your ticket. Please contact staff."
-            ).catch(() => {});
+            // If channel was already created, tell the user where it is
+            if (ticketChannel) {
+                await ticketChannel.send({
+                    content:
+                        "⚠️ There was a problem completing ticket setup. " +
+                        "Please wait for staff to assist you."
+                }).catch(() => {});
+
+                await interaction.editReply(
+                    `⚠️ Your ticket was created: ${ticketChannel}, but setup encountered an error. Staff have been notified.`
+                ).catch(() => {});
+            } else {
+                await interaction.editReply(
+                    "❌ Couldn't create your ticket. Please contact staff."
+                ).catch(() => {});
+            }
         }
 
         return;
     }
 
-    // CLOSE TICKET BUTTON
+    // CLOSE TICKET
     if (
         interaction.isButton() &&
         interaction.customId === "vyroxmc_close_ticket"
@@ -504,6 +543,7 @@ client.on("interactionCreate", async interaction => {
     }
 });
 
+// ERROR HANDLING
 client.on("error", error => {
     console.error("[DISCORD ERROR]", error);
 });
@@ -512,6 +552,7 @@ process.on("unhandledRejection", error => {
     console.error("[UNHANDLED REJECTION]", error);
 });
 
+// LOGIN
 if (!process.env.TOKEN) {
     console.error("Missing TOKEN in environment variables!");
     process.exit(1);
